@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
+import TextDisplay from './TextDisplay';
 //react native
 import { ActivityIndicator, Text, View, ScrollView, StyleSheet, Button, Platform } from 'react-native';
 
@@ -20,11 +21,37 @@ import {cameraWithTensors} from '@tensorflow/tfjs-react-native';
 //disable yellow warnings on EXPO client!
 console.disableYellowBox = true;
 
+
+import { makeObservable, observable, action, computed } from "mobx"
+
+class WordPrediction {
+    word = ""
+
+    constructor() {
+        makeObservable(this, {
+            word: observable,
+            toggle: action,
+            getWord: computed
+        })
+    }
+    get getWord () {
+      console.log(this.word)
+      return this.word
+    }
+
+    toggle(word) {
+        this.word = word
+        // console.log(word)
+    }
+}
+
+
 export default function App() {
 
   //------------------------------------------------
   //state variables for image/translation processing
   //------------------------------------------------
+  const store = new WordPrediction();
   const [word, setWord] = useState('');
   const [translation, setTranslation] = useState('');
   const [language, setLanguage] =  useState('he');
@@ -134,7 +161,7 @@ export default function App() {
       // we only care about the first occurrence
       console.log(`Translated text is: ${response.data.translations[0].translatedText}`);
       setTranslation(response.data.translations[0].translatedText); 
-      setWord(className);
+      // setWord(className);
     } catch (error) {
       console.error(`Error while attempting to get translation from Google API. Error: ${error}`);
       setTranslation(`Cannot get transaction at this time. Please try again later`);
@@ -190,7 +217,9 @@ export default function App() {
       //stop looping!
       // cancelAnimationFrame(requestAnimationFrameId);
       // setPredictionFound(true);
-      setWord(prediction[0].className);
+      // setWord(prediction[0].className);
+      store.toggle(prediction[0].className);
+      // console.log(store.word)
       //get translation!
       // await getTranslation(prediction[0].className);
     }
@@ -291,14 +320,14 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <Text style={styles.title}>
           {word}
         </Text>
-      </View>
-
+      </View> */}
+      <TextDisplay store={store} />
       <View style={styles.body}>
-        { showLanguageDropdown() }
+        <Text>{store.getWord}</Text>
         { renderCameraView() }
       </View>  
     </View>
