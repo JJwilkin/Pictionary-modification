@@ -212,7 +212,7 @@ export default function App() {
     if(!prediction || prediction.length === 0) { return; }
     
     //only attempt translation when confidence is higher than 20%
-    if(prediction[0].probability > 0.3) {
+    if(prediction[0].probability > 0.5) {
 
       //stop looping!
       // cancelAnimationFrame(requestAnimationFrameId);
@@ -325,9 +325,8 @@ export default function App() {
           {word}
         </Text>
       </View> */}
-      <TextDisplay store={store} />
+      <TextDisplay store={store} styles={styles}/>
       <View style={styles.body}>
-        <Text>{store.getWord}</Text>
         { renderCameraView() }
       </View>  
     </View>
