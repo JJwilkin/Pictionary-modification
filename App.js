@@ -26,22 +26,34 @@ import { makeObservable, observable, action, computed } from "mobx"
 
 class WordPrediction {
     word = ""
-
+    showPrediction = false
     constructor() {
         makeObservable(this, {
             word: observable,
             toggle: action,
-            getWord: computed
+            getWord: computed,
+            getShowPrediction: computed,
+            prediction: action,
+            showPrediction:observable,
+
         })
     }
     get getWord () {
       // console.log(this.word)
       return this.word
     }
+    
+    get getShowPrediction () {
+      return this.showPrediction;
+    }
 
     toggle(word) {
         this.word = word
         // console.log(word)
+    }
+
+    prediction(val) {
+      this.showPrediction = val;
     }
 }
 
@@ -203,9 +215,8 @@ export default function App() {
   // both performance and simplicity. This means the array will return 1 prediction only!
   //----------------------------------------------------------------------------------------
   const getPrediction = async(tensor) => {
-    if (!tensor ) return;
-    if ( Platform.OS !== "ios" && Math.random()*50 % 50 == 1) return;
-    else if(!tensor || Math.random()*7 % 7 == 0 ) { return; }
+    if (!tensor && tensor != null && !store.getShowPrediction) return;
+   
     //topk set to 1
     const prediction = await mobilenetModel.classify(tensor, 1);
     // console.log(`prediction: ${JSON.stringify(prediction)}`);
@@ -235,6 +246,9 @@ export default function App() {
   //------------------------------------------------------------------------------
   const handleCameraStream = (imageAsTensors) => {
     const loop = async () => {
+      
+      // if ( Platform.OS !== "ios" && Math.random()*50 % 50 == 1) run = false;
+      // else if( Math.random()*7 % 7 == 0 ) { run = false; }
         const nextImageTensor = await imageAsTensors.next().value;
         await getPrediction(nextImageTensor);
         requestAnimationFrameId = requestAnimationFrame(loop);
@@ -330,7 +344,7 @@ export default function App() {
       </View> */}
       <TextDisplay store={store} styles={styles}/>
       <View style={styles.body}>
-        { renderCameraView() }
+        { frameworkReady ? renderCameraView() : <Text styles={styles.title}>Loading</Text> }
       </View>  
     </View>
   );
