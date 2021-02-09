@@ -35,7 +35,7 @@ class WordPrediction {
         })
     }
     get getWord () {
-      console.log(this.word)
+      // console.log(this.word)
       return this.word
     }
 
@@ -112,7 +112,7 @@ export default function App() {
   }, [frameworkReady]);
   
   useEffect(()=> {
-    console.log(word)
+    // console.log(word)
   }, [word, translation])
 
   //--------------------------
@@ -203,8 +203,9 @@ export default function App() {
   // both performance and simplicity. This means the array will return 1 prediction only!
   //----------------------------------------------------------------------------------------
   const getPrediction = async(tensor) => {
-    if(!tensor) { return; }
-
+    if (!tensor ) return;
+    if ( Platform.OS !== "ios" && Math.random()*50 % 50 == 1) return;
+    else if(!tensor || Math.random()*7 % 7 == 0 ) { return; }
     //topk set to 1
     const prediction = await mobilenetModel.classify(tensor, 1);
     // console.log(`prediction: ${JSON.stringify(prediction)}`);
@@ -212,7 +213,7 @@ export default function App() {
     if(!prediction || prediction.length === 0) { return; }
     
     //only attempt translation when confidence is higher than 20%
-    if(prediction[0].probability > 0.5) {
+    if(prediction[0].probability > 0.4) {
 
       //stop looping!
       // cancelAnimationFrame(requestAnimationFrameId);
@@ -234,10 +235,12 @@ export default function App() {
   //------------------------------------------------------------------------------
   const handleCameraStream = (imageAsTensors) => {
     const loop = async () => {
-      const nextImageTensor = await imageAsTensors.next().value;
-      await getPrediction(nextImageTensor);
-      requestAnimationFrameId = requestAnimationFrame(loop);
-    };
+        const nextImageTensor = await imageAsTensors.next().value;
+        await getPrediction(nextImageTensor);
+        requestAnimationFrameId = requestAnimationFrame(loop);
+      }
+      
+    
     if(!predictionFound) loop();
   }
 
@@ -311,7 +314,7 @@ export default function App() {
                   resizeHeight={tensorDims.height}
                   resizeWidth={tensorDims.width}
                   resizeDepth={3}
-                  onReady={handleCameraStream}
+                  onReady={ handleCameraStream}
                   autorender={true}
                 />
                 <Text style={styles.legendTextField}>Point to any object and get its {availableLanguages.find(al => al.value === language).label } translation</Text>
