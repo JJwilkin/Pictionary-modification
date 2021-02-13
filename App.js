@@ -215,7 +215,7 @@ export default function App() {
   // both performance and simplicity. This means the array will return 1 prediction only!
   //----------------------------------------------------------------------------------------
   const getPrediction = async(tensor) => {
-    if (!tensor && tensor != null && !store.getShowPrediction) return;
+    
    
     //topk set to 1
     const prediction = await mobilenetModel.classify(tensor, 1);
@@ -246,16 +246,20 @@ export default function App() {
   //------------------------------------------------------------------------------
   const handleCameraStream = (imageAsTensors) => {
     const loop = async () => {
-      
-      // if ( Platform.OS !== "ios" && Math.random()*50 % 50 == 1) run = false;
-      // else if( Math.random()*7 % 7 == 0 ) { run = false; }
+      // console.log(store.getShowPrediction);
+      if (store.getShowPrediction) {
         const nextImageTensor = await imageAsTensors.next().value;
         await getPrediction(nextImageTensor);
+      };
+      // if ( Platform.OS !== "ios" && Math.random()*50 % 50 == 1) run = false;
+      // else if( Math.random()*7 % 7 == 0 ) { run = false; }
+        
         requestAnimationFrameId = requestAnimationFrame(loop);
       }
       
     
     if(!predictionFound) loop();
+    
   }
 
   //------------------------------------------------------
@@ -328,7 +332,7 @@ export default function App() {
                   resizeHeight={tensorDims.height}
                   resizeWidth={tensorDims.width}
                   resizeDepth={3}
-                  onReady={ handleCameraStream}
+                  onReady={handleCameraStream}
                   autorender={true}
                 />
                 <Text style={styles.legendTextField}>Point to any object and get its {availableLanguages.find(al => al.value === language).label } translation</Text>

@@ -26,6 +26,7 @@
     "react": "~16.11.0",
     "react-dom": "~16.11.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-38.0.2.tar.gz",
+    "react-native-camera": "^3.42.2",
     "react-native-fs": "^2.16.6",
     "react-native-paper": "^4.0.1",
     "react-native-picker-select": "^7.0.0",

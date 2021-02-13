@@ -13,14 +13,20 @@ import {
 export default function TextDisplay(props) {
   const { store, styles } = props;
   const [word, setWord] = useState("");
-  setInterval(() => {
-    store.prediction(true);
+  // setInterval(() => {
+  //   store.prediction(true);
+  //   setWord(store.getWord);
+  //   setTimeout(() => {
+  //     store.prediction(false);
+  //   }, 400);
+  // }, 2000);
+const triggerPrediction = () => {
+  store.prediction(true);
+  setTimeout(() => {
     setWord(store.getWord);
-    setTimeout(() => {
-      store.prediction(false);
-    }, 400);
-  }, 1000);
-
+    store.prediction(false);
+  }, 300)
+}
   // setInterval(() => {
   //   let currentPrediction = store.getWord;
 
@@ -34,7 +40,7 @@ export default function TextDisplay(props) {
   return (
     <View style={styles.header}>
       <Text style={styles.title}>{word}</Text>
-      {/* <Button onPress={() => store.}/> */}
+      <Button title="Get Prediction" onPress={triggerPrediction}/>
     </View>
   );
 }
