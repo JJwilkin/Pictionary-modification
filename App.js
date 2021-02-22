@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import TextDisplay from './TextDisplay';
 //react native
@@ -17,6 +17,7 @@ import { Camera } from 'expo-camera';
 import * as tf from '@tensorflow/tfjs';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import {cameraWithTensors} from '@tensorflow/tfjs-react-native';
+import * as knnClassifier from '@tensorflow-models/knn-classifier';
 
 //disable yellow warnings on EXPO client!
 console.disableYellowBox = true;
@@ -64,12 +65,14 @@ export default function App() {
   //state variables for image/translation processing
   //------------------------------------------------
   const store = new WordPrediction();
+  const camera = useRef(null)
   const [word, setWord] = useState('');
   const [translation, setTranslation] = useState('');
   const [language, setLanguage] =  useState('he');
   const [translationAvailable, setTranslationAvailable] = useState(true);
   const [predictionFound, setPredictionFound] = useState(false);
   const [hasPermission, setHasPermission] = useState(null);
+  const [classifier, setClassifier] = useState(null);
 
   //Tensorflow and Permissions
   const [mobilenetModel, setMobilenetModel] = useState(null);
@@ -107,6 +110,7 @@ export default function App() {
     if(!frameworkReady) {
       (async () => {
 
+        setClassifier(knnClassifier.create())
         //check permissions
         const { status } = await Camera.requestPermissionsAsync();
         console.log(`permissions status: ${status}`);
@@ -126,6 +130,17 @@ export default function App() {
   useEffect(()=> {
     // console.log(word)
   }, [word, translation])
+
+  const addExample = async classId => {
+    // Capture an image from the web camera.
+    if (camera) {
+      let photo = await camera.takePictureAsync();
+      const activation = net.infer(photo, true);
+
+    // Pass the intermediate activation to the classifier.
+      classifier.addExample(activation, classId);
+    }
+  };
 
   //--------------------------
   // Run onUnmount routine
@@ -215,7 +230,7 @@ export default function App() {
   // both performance and simplicity. This means the array will return 1 prediction only!
   //----------------------------------------------------------------------------------------
   const getPrediction = async(tensor) => {
-    if (!tensor && tensor != null && !store.getShowPrediction) return;
+    if (!tensor && tensor != null && !store.getShowPrediction && false) return;
    
     //topk set to 1
     const prediction = await mobilenetModel.classify(tensor, 1);
@@ -245,17 +260,17 @@ export default function App() {
   // https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
   //------------------------------------------------------------------------------
   const handleCameraStream = (imageAsTensors) => {
-    const loop = async () => {
+    // const loop = async () => {
       
-      // if ( Platform.OS !== "ios" && Math.random()*50 % 50 == 1) run = false;
-      // else if( Math.random()*7 % 7 == 0 ) { run = false; }
-        const nextImageTensor = await imageAsTensors.next().value;
-        await getPrediction(nextImageTensor);
-        requestAnimationFrameId = requestAnimationFrame(loop);
-      }
+    //   // if ( Platform.OS !== "ios" && Math.random()*50 % 50 == 1) run = false;
+    //   // else if( Math.random()*7 % 7 == 0 ) { run = false; }
+    //     const nextImageTensor = await imageAsTensors.next().value;
+    //     await getPrediction(nextImageTensor);
+    //     requestAnimationFrameId = requestAnimationFrame(loop);
+    //   }
       
     
-    if(!predictionFound) loop();
+    // if(!predictionFound) loop();
   }
 
   //------------------------------------------------------
@@ -330,6 +345,9 @@ export default function App() {
                   resizeDepth={3}
                   onReady={ handleCameraStream}
                   autorender={true}
+                  ref={ref => {
+                    this.camera = ref;
+                  }}
                 />
                 <Text style={styles.legendTextField}>Point to any object and get its {availableLanguages.find(al => al.value === language).label } translation</Text>
             </View>;
@@ -345,6 +363,7 @@ export default function App() {
       <TextDisplay store={store} styles={styles}/>
       <View style={styles.body}>
         { frameworkReady ? renderCameraView() : <Text styles={styles.title}>Loading</Text> }
+        <Button title='Apple' onPress={async ()=>await this.camera.takePictureAsync()} />
       </View>  
     </View>
   );
